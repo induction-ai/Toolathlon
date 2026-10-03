@@ -538,8 +538,14 @@ class NotionPageDuplicator:
         try:
             notion_official_server = MCPServerManager(agent_workspace="./").servers['notion_official']
             async with notion_official_server as server:
-                res = await call_tool_with_retry(server, "notion-duplicate-page", {"page_id": child_page_id})
-                data = json.loads(res.content[0].text)
+                res = await call_tool_with_retry(
+                    server, "notion-duplicate-page", {"page_id": child_page_id}, raise_on_tool_error=True
+                )
+                raw = res.content[0].text if res.content else ""
+                try:
+                    data = json.loads(raw)
+                except json.JSONDecodeError:
+                    raise Exception(f"notion-duplicate-page returned a non-JSON response: {raw}")
 
                 # Check if duplication was successful
                 if 'name' in data and data.get('name') == 'APIResponseError':

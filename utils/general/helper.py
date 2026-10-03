@@ -434,8 +434,10 @@ async def run_command(command, debug=False, show_output=False, check=False):
     stderr_decoded = stderr.decode()
     
     if check and process.returncode != 0:
+        # Scripts report their failure reason on stdout, so the error carries both streams.
         raise RuntimeError(
-            f"Command exited with code {process.returncode}: {stderr_decoded}"
+            f"Command exited with code {process.returncode}\n"
+            f"== STDOUT ==\n{stdout_decoded}\n== STDERR ==\n{stderr_decoded}"
         )
 
     if debug:
